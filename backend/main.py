@@ -31,7 +31,7 @@ app.add_middleware(
 BASE_DIR = Path(__file__).parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "outputs"
-SCRIPTS_DIR = BASE_DIR.parent / "scripts"
+SCRIPTS_DIR = BASE_DIR / "scripts"
 
 # Create directories
 UPLOAD_DIR.mkdir(exist_ok=True)
