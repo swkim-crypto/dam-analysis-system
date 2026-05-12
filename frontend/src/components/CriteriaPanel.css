@@ -1,0 +1,51 @@
+.criteria-panel {
+  padding: 25px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.criteria-group {
+  margin-bottom: 18px;
+}
+
+.criteria-group label {
+  display: block;
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.criteria-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.criteria-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.range-inputs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.range-inputs input {
+  flex: 1;
+}
+
+.range-inputs span {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.criteria-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}

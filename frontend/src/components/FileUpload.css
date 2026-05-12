@@ -1,0 +1,36 @@
+.file-upload-section {
+  padding: 25px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.upload-item {
+  margin-bottom: 20px;
+}
+
+.upload-label {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.btn-upload {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.btn-upload:hover {
+  background: #e5e7eb;
+}
+
+.file-info {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #10b981;
+  padding: 8px 12px;
+  background: #ecfdf5;
+  border-radius: 6px;
+}
