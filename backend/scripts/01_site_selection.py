@@ -44,7 +44,18 @@ dem_array = np.where(dem_array == dem.nodata, np.nan, dem_array)
 print(f"✓ DEM loaded: {dem.width}x{dem.height}, CRS: {dem.crs}")
 
 # Load rivers
-rivers_gdf = gpd.read_file(config['paths']['rivers'])
+import glob
+rivers_path = config['paths']['rivers']
+if os.path.isdir(rivers_path):
+    # 폴더인 경우 .shp 파일 찾기
+    shp_files = glob.glob(os.path.join(rivers_path, "*.shp"))
+    if shp_files:
+        rivers_gdf = gpd.read_file(shp_files[0])
+    else:
+        raise FileNotFoundError("No .shp file found in rivers directory")
+else:
+    rivers_gdf = gpd.read_file(rivers_path)
+
 print(f"✓ Rivers loaded: {len(rivers_gdf)} segments, CRS: {rivers_gdf.crs}")
 
 # Load boundary
