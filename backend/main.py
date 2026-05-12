@@ -13,6 +13,7 @@ import uuid
 import os
 import shutil
 import asyncio
+import glob
 from datetime import datetime
 from pathlib import Path
 
@@ -103,40 +104,39 @@ async def analyze_basin(
     task_dir = UPLOAD_DIR / task_id
     task_dir.mkdir(exist_ok=True)
     
-# Save uploaded files
-try:
-    # Save DEM (handle zip or tif)
-    if dem.filename.endswith('.zip'):
-        dem_zip = task_dir / "dem.zip"
-        with open(dem_zip, "wb") as f:
-            shutil.copyfileobj(dem.file, f)
-        # Extract
-        shutil.unpack_archive(dem_zip, task_dir / "dem_extracted")
-        # Find .tif file
-        import glob
-        tif_files = glob.glob(str(task_dir / "dem_extracted" / "*.tif"))
-        if tif_files:
-            dem_path = tif_files[0]
+    # Save uploaded files
+    try:
+        # Save DEM (handle zip or tif)
+        if dem.filename.endswith('.zip'):
+            dem_zip = task_dir / "dem.zip"
+            with open(dem_zip, "wb") as f:
+                shutil.copyfileobj(dem.file, f)
+            # Extract
+            shutil.unpack_archive(dem_zip, task_dir / "dem_extracted")
+            # Find .tif file
+            tif_files = glob.glob(str(task_dir / "dem_extracted" / "*.tif"))
+            if tif_files:
+                dem_path = tif_files[0]
+            else:
+                raise Exception("No .tif file found in zip")
         else:
-            raise Exception("No .tif file found in zip")
-    else:
-        dem_path = task_dir / "dem.tif"
-        with open(dem_path, "wb") as f:
-            shutil.copyfileobj(dem.file, f)
-    
-    rivers_path = task_dir / "rivers.shp"
-    boundary_path = task_dir / "boundary.shp"
-    
-    # Save rivers (handle zip or shp)
-    if rivers.filename.endswith('.zip'):
-        rivers_zip = task_dir / "rivers.zip"
-        with open(rivers_zip, "wb") as f:
-            shutil.copyfileobj(rivers.file, f)
-        # Extract
-        shutil.unpack_archive(rivers_zip, task_dir / "rivers")
-    else:
-        with open(rivers_path, "wb") as f:
-            shutil.copyfileobj(rivers.file, f)
+            dem_path = task_dir / "dem.tif"
+            with open(dem_path, "wb") as f:
+                shutil.copyfileobj(dem.file, f)
+        
+        rivers_path = task_dir / "rivers.shp"
+        boundary_path = task_dir / "boundary.shp"
+        
+        # Save rivers (handle zip or shp)
+        if rivers.filename.endswith('.zip'):
+            rivers_zip = task_dir / "rivers.zip"
+            with open(rivers_zip, "wb") as f:
+                shutil.copyfileobj(rivers.file, f)
+            # Extract
+            shutil.unpack_archive(rivers_zip, task_dir / "rivers")
+        else:
+            with open(rivers_path, "wb") as f:
+                shutil.copyfileobj(rivers.file, f)
         
         # Save boundary
         if boundary.filename.endswith('.zip'):
@@ -166,17 +166,19 @@ try:
         run_analysis,
         task_id,
         task_dir,
+        str(dem_path),
         criteria_obj
     )
     
     return {"task_id": task_id, "status": "pending"}
 
-async def run_analysis(task_id: str, task_dir: Path, criteria: AnalysisCriteria):
+async def run_analysis(task_id: str, task_dir: Path, dem_path: str, criteria: AnalysisCriteria):
     """
     Run the analysis pipeline in background
     """
     import subprocess
     import sys
+    import yaml
     
     try:
         # Update status
@@ -207,14 +209,13 @@ async def run_analysis(task_id: str, task_dir: Path, criteria: AnalysisCriteria)
                 "min_distance_between_sites": 2000
             },
             "paths": {
-                "dem": str(task_dir / "dem.tif"),
+                "dem": dem_path,
                 "rivers": str(task_dir / "rivers"),
                 "boundary": str(task_dir / "boundary"),
                 "output_dir": str(OUTPUT_DIR / task_id)
             }
         }
-        import yaml
-
+        
         config_path = task_dir / "config.yaml"
         with open(config_path, 'w') as f:
             yaml.dump(config, f)
