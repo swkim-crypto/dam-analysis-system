@@ -103,26 +103,40 @@ async def analyze_basin(
     task_dir = UPLOAD_DIR / task_id
     task_dir.mkdir(exist_ok=True)
     
-    # Save uploaded files
-    try:
+# Save uploaded files
+try:
+    # Save DEM (handle zip or tif)
+    if dem.filename.endswith('.zip'):
+        dem_zip = task_dir / "dem.zip"
+        with open(dem_zip, "wb") as f:
+            shutil.copyfileobj(dem.file, f)
+        # Extract
+        shutil.unpack_archive(dem_zip, task_dir / "dem_extracted")
+        # Find .tif file
+        import glob
+        tif_files = glob.glob(str(task_dir / "dem_extracted" / "*.tif"))
+        if tif_files:
+            dem_path = tif_files[0]
+        else:
+            raise Exception("No .tif file found in zip")
+    else:
         dem_path = task_dir / "dem.tif"
-        rivers_path = task_dir / "rivers.shp"
-        boundary_path = task_dir / "boundary.shp"
-        
-        # Save DEM
         with open(dem_path, "wb") as f:
             shutil.copyfileobj(dem.file, f)
-        
-        # Save rivers (handle zip or shp)
-        if rivers.filename.endswith('.zip'):
-            rivers_zip = task_dir / "rivers.zip"
-            with open(rivers_zip, "wb") as f:
-                shutil.copyfileobj(rivers.file, f)
-            # Extract
-            shutil.unpack_archive(rivers_zip, task_dir / "rivers")
-        else:
-            with open(rivers_path, "wb") as f:
-                shutil.copyfileobj(rivers.file, f)
+    
+    rivers_path = task_dir / "rivers.shp"
+    boundary_path = task_dir / "boundary.shp"
+    
+    # Save rivers (handle zip or shp)
+    if rivers.filename.endswith('.zip'):
+        rivers_zip = task_dir / "rivers.zip"
+        with open(rivers_zip, "wb") as f:
+            shutil.copyfileobj(rivers.file, f)
+        # Extract
+        shutil.unpack_archive(rivers_zip, task_dir / "rivers")
+    else:
+        with open(rivers_path, "wb") as f:
+            shutil.copyfileobj(rivers.file, f)
         
         # Save boundary
         if boundary.filename.endswith('.zip'):
