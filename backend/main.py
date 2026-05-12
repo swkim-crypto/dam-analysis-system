@@ -199,7 +199,8 @@ async def run_analysis(task_id: str, task_dir: Path, criteria: AnalysisCriteria)
                 "output_dir": str(OUTPUT_DIR / task_id)
             }
         }
-        
+        import yaml
+
         config_path = task_dir / "config.yaml"
         with open(config_path, 'w') as f:
             yaml.dump(config, f)
