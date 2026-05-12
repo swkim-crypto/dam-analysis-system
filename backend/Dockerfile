@@ -14,12 +14,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# requirements.txt 복사 및 설치
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+# backend 폴더 전체 복사
+COPY backend/ .
 
-# 전체 코드 복사
-COPY . .
+# requirements 설치
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 EXPOSE 8000
 
