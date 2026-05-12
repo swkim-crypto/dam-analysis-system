@@ -200,9 +200,9 @@ async def run_analysis(task_id: str, task_dir: Path, criteria: AnalysisCriteria)
             }
         }
         
-        config_path = task_dir / "config.json"
+        config_path = task_dir / "config.yaml"
         with open(config_path, 'w') as f:
-            json.dump(config, f, indent=2)
+            yaml.dump(config, f)
         
         # Create output directory
         output_dir = OUTPUT_DIR / task_id
