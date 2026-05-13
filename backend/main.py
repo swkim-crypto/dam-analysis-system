@@ -33,9 +33,10 @@ app.add_middleware(
 # In-memory task storage
 tasks = {}
 
-UPLOAD_DIR = Path("uploads")
-OUTPUT_DIR = Path("outputs")
-SCRIPTS_DIR = Path("scripts")
+BASE_DIR = Path(__file__).parent.resolve()
+UPLOAD_DIR = BASE_DIR / "uploads"
+OUTPUT_DIR = BASE_DIR / "outputs"
+SCRIPTS_DIR = BASE_DIR / "scripts"
 
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
@@ -43,6 +44,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 def make_config(task_dir: Path, criteria: dict) -> dict:
     """Generate config.yaml for analysis scripts"""
+    task_dir = task_dir.resolve()  # 절대경로 보장
     config = {
         "paths": {
             "dem": str(task_dir / "dem.tif"),
