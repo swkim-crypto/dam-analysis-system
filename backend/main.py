@@ -14,6 +14,8 @@ import yaml
 from pathlib import Path
 from typing import Optional
 import aiofiles
+import zipfile
+import glob
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -210,7 +212,29 @@ async def analyze(
             content = await upload.read()
             await f.write(content)
 
-    await save(dem, task_dir / "dem.tif")
+    # DEM 저장 - zip이면 압축 해제 후 .tif 찾기
+    dem_filename = dem.filename or "dem.tif"
+    dem_raw_path = task_dir / dem_filename
+    await save(dem, dem_raw_path)
+
+    dem_final_path = dem_raw_path
+    if dem_filename.lower().endswith(".zip"):
+        dem_extract_dir = task_dir / "dem_extracted"
+        dem_extract_dir.mkdir()
+        with zipfile.ZipFile(dem_raw_path, "r") as zf:
+            zf.extractall(dem_extract_dir)
+        tif_files = glob.glob(str(dem_extract_dir / "**" / "*.tif"), recursive=True)
+        tif_files += glob.glob(str(dem_extract_dir / "**" / "*.tiff"), recursive=True)
+        tif_files += glob.glob(str(dem_extract_dir / "**" / "*.hgt"), recursive=True)
+        if not tif_files:
+            raise HTTPException(status_code=400, detail="ZIP 안에서 DEM 파일(.tif/.hgt)을 찾을 수 없습니다")
+        dem_final_path = Path(tif_files[0])
+
+    # config용 dem 경로를 dem.tif로 심볼릭 링크 또는 복사
+    dem_config_path = task_dir / "dem.tif"
+    if dem_final_path != dem_config_path:
+        import shutil as _shutil
+        _shutil.copy2(str(dem_final_path), str(dem_config_path))
 
     # Rivers: save to rivers/ subfolder (supports .shp or single file)
     rivers_dir = task_dir / "rivers"
@@ -218,7 +242,16 @@ async def analyze(
     rivers_filename = rivers.filename or "rivers.shp"
     await save(rivers, rivers_dir / rivers_filename)
 
+    # Rivers zip 처리
+    if rivers_filename.lower().endswith(".zip"):
+        with zipfile.ZipFile(rivers_dir / rivers_filename, "r") as zf:
+            zf.extractall(rivers_dir)
+
     await save(boundary, task_dir / "boundary.shp")
+    # Boundary zip 처리
+    if (boundary.filename or "").lower().endswith(".zip"):
+        with zipfile.ZipFile(task_dir / boundary.filename, "r") as zf:
+            zf.extractall(task_dir)
 
     try:
         criteria_dict = json.loads(criteria)
