@@ -45,7 +45,7 @@ function App() {
           loadResults(taskId);
         } else if (data.status === 'failed') {
           setIsAnalyzing(false);
-          alert(`분석 실패: ${data.error}`);
+          alert(`분석 실패: ${data.message || data.error || '알 수 없는 오류'}`);
         }
       } catch (error) {
         console.error('Status check failed:', error);
